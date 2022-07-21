@@ -5,7 +5,7 @@ The launcher will, by default, download the 'Beta 1.1_02' version of Minecraft, 
 
 If you'd like to change this, download the source files, navigate to the GameUpdater class, then to the "loadFiles()" method and change the first URL value (*piston-data.mojang.com*) to a different version of the same URL. Otherwise, you need to change the URL and the "version" String to match the URL.
 
-**You need Java 8u261 or greater to run the application.**
+**You need Java 8u261 or greater to run this application.**
 
 ## Issues
 - - Game doesn't recognise authenticated accounts and will default to "Player".
