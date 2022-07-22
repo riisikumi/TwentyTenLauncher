@@ -9,15 +9,11 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.PrivilegedActionException;
 import java.util.Objects;
-import java.util.UUID;
 
 public class LauncherFrame extends Frame
 {
-	private static final String VERSION = "0.7";
-	private static final String BUILD = "2122";
-
+    public static String launcherVersion = "0.7.2222";
 	public AuthFrame aFrame;
 	public Launcher launcher;
 	public LauncherFrame lFrame;
@@ -33,7 +29,7 @@ public class LauncherFrame extends Frame
 		{
 			e.printStackTrace();
 		}
-		this.setTitle("Minecraft Launcher" + " " + VERSION + "." + BUILD);
+		this.setTitle("Minecraft Launcher" + " " + launcherVersion);
 		this.setLayout(new BorderLayout());
 		this.setBackground(Color.BLACK);
 		this.setMinimumSize(new Dimension(320, 200));
@@ -70,8 +66,6 @@ public class LauncherFrame extends Frame
 			{
 				username = "Player";
 			}
-
-			System.out.println("Username: " + username);
 			this.launcher = new Launcher();
 			this.launcher.customParameters.put("username", username);
 			this.launcher.init();
@@ -88,7 +82,7 @@ public class LauncherFrame extends Frame
 		}
 	}
 
-	public void login(String username, String password) throws IOException, PrivilegedActionException
+	public void login(String username, String password)
 	{
 		if (!checkConnection())
 		{
@@ -98,8 +92,8 @@ public class LauncherFrame extends Frame
 		{
 			try
 			{
-				String jsonParameters = "\"username\":\"" + username + "\",\"password\":\"" + password
-						+ "\",\"clientToken\":\"" + readClientToken()
+				String jsonParameters = "\"username\":\"" + username
+						+ "\",\"password\":\"" + password
 						+ "\",\"requestUser\":true}";
 				String response = Util.executePost("https://authserver.mojang.com/authenticate", jsonParameters);
 				if (response == null)
@@ -150,11 +144,6 @@ public class LauncherFrame extends Frame
 						this.playOffline(username);
 					} else
 					{
-						String clientToken = json.getString("clientToken");
-						if (!clientToken.equals(readClientToken()))
-						{
-							writeClientToken(clientToken);
-						}
 						username = json.getJSONObject("selectedProfile").getString("name");
 
 						System.out.println("Username is '" + username + "'");
@@ -200,37 +189,6 @@ public class LauncherFrame extends Frame
 		return launcher.canPlayOffline();
 	}
 
-	public static void writeClientToken(String clientToken)
-	{
-		try
-		{
-			File file = new File(Util.getWorkingDirectory() + File.separator + "token");
-			FileWriter writer = new FileWriter(file);
-			writer.write(clientToken);
-			writer.close();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	public static String readClientToken()
-	{
-		try
-		{
-			File file = new File(Util.getWorkingDirectory() + File.separator + "token");
-			FileReader reader = new FileReader(file);
-			BufferedReader bufferedReader = new BufferedReader(reader);
-			String line = bufferedReader.readLine();
-			bufferedReader.close();
-			return line;
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	public static void main(String[] args)
 	{
 		if (Runtime.getRuntime().maxMemory() / 1024L / 1024L < 511L)
@@ -240,8 +198,5 @@ public class LauncherFrame extends Frame
 		}
 		LauncherFrame lFrame = new LauncherFrame();
 		lFrame.setVisible(true);
-
-		String clientToken = UUID.randomUUID().toString().replace("-", "");
-		writeClientToken(clientToken);
 	}
 }

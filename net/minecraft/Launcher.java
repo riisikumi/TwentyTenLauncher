@@ -15,17 +15,14 @@ import java.util.Objects;
 public class Launcher extends Applet implements AppletStub
 {
     public Map<String, String> customParameters = new HashMap<>();
-
+    private int context = 0;
+    private boolean active = false;
+    private boolean gUpdaterStarted = false;
     private Image img;
 
     private BufferedImage bImg;
 
     private Applet applet;
-
-    private int context = 0;
-
-    private boolean active = false;
-    private boolean gUpdaterStarted = false;
     private GameUpdater gUpdater;
 
     public Launcher()
@@ -65,7 +62,7 @@ public class Launcher extends Applet implements AppletStub
             e.printStackTrace();
         }
         this.customParameters.put("username", username);
-        this.gUpdater = new GameUpdater(".jar" + username);
+        this.gUpdater = new GameUpdater();
     }
 
     public boolean canPlayOffline()
@@ -234,13 +231,7 @@ public class Launcher extends Applet implements AppletStub
     }
 
     @Override
-    public void appletResize(int width, int height)
-    {
-        if (this.applet != null)
-        {
-            this.applet.resize(854, 480);
-        }
-    }
+    public void appletResize(int width, int height) {}
 
     public URL getDocumentBase()
     {

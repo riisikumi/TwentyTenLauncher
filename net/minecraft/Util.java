@@ -79,7 +79,7 @@ public class Util
 		return response != null ? EntityUtils.toString(response.getEntity()) : null;
 	}
 
-	public enum OS
+    public enum OS
 	{
 		osx,
 		linux,

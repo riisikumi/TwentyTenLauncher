@@ -1,10 +1,7 @@
 package net.minecraft;
 
 import java.applet.Applet;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,27 +24,17 @@ public class GameUpdater implements Runnable
     public int currentSizeExtract;
     public int totalSizeExtract;
     protected int state;
-
-    public String mainGameUrl;
     public String fatalErrorDescription;
     protected String subtaskMessage = "";
     protected String clientVersion = "client";
     protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
-    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/" + this.clientVersion + ".jar";
-
-    protected URL[] urlList;
-
-    protected Thread lThread;
-
-    private static ClassLoader cLoader;
-
+    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/"
+            + this.clientVersion + ".jar";
     public boolean fatalError;
     protected static boolean natives_loaded = false;
-
-    public GameUpdater(String mainGameUrl)
-    {
-        this.mainGameUrl = mainGameUrl;
-    }
+    protected URL[] urlList;
+    protected Thread lThread;
+    private static ClassLoader cLoader;
 
     public void init()
     {
@@ -77,7 +64,7 @@ public class GameUpdater implements Runnable
         }
     }
 
-    protected void loadFiles() throws MalformedURLException
+    protected void loadFileURLs() throws MalformedURLException
     {
         this.state = 2;
 
@@ -115,7 +102,7 @@ public class GameUpdater implements Runnable
         this.percentage = 5;
         try
         {
-            this.loadFiles();
+            this.loadFileURLs();
             String path = AccessController.doPrivileged((PrivilegedExceptionAction<String>) ()
                     -> Util.getWorkingDirectory() + File.separator + "bin" + File.separator);
 
@@ -135,7 +122,7 @@ public class GameUpdater implements Runnable
             {
                 this.downloadFiles(path);
                 this.renameJar(path);
-                this.extractArchives(path);
+                this.extractZipArchives(path);
             }
             this.updateClasspath(dir);
             this.state = 7;
@@ -150,7 +137,6 @@ public class GameUpdater implements Runnable
             this.lThread = null;
         }
     }
-
     protected void updateClasspath(File dir) throws MalformedURLException
     {
         this.state = 6;
@@ -187,6 +173,7 @@ public class GameUpdater implements Runnable
                 this.fatalException("Failed to load Minecraft class", e);
             }
         }
+
 
         String path;
         if (!(path = dir.getAbsolutePath()).endsWith(File.separator))
@@ -318,7 +305,7 @@ public class GameUpdater implements Runnable
         }
     }
 
-    protected void extractZip(String path, String natives)
+    protected void extractZIP(String path, String natives)
     {
         this.state = 5;
 
@@ -366,7 +353,7 @@ public class GameUpdater implements Runnable
         }
     }
 
-    protected void extractArchives(String path)
+    protected void extractZipArchives(String path)
     {
         String libsZip;
         String nativesZip;
@@ -395,21 +382,14 @@ public class GameUpdater implements Runnable
                     default:
                         throw new RuntimeException("Unknown OS: " + Util.OPERATING_SYSTEM);
                 }
-                extractZip(path + libsZip, String.valueOf(libsDir));
-                extractZip(path + nativesZip, libsDir + File.separator + "natives");
+                extractZIP(path + libsZip, String.valueOf(libsDir));
+                extractZIP(path + nativesZip, libsDir + File.separator + "natives");
             }
             this.subtaskMessage = "";
         } catch (Exception e)
         {
             this.fatalException("Error while extracting archives", e);
         }
-    }
-
-    protected void renameJar(String path)
-    {
-        File jarFile = new File(path + this.clientVersion + ".jar");
-        File minecraftJar = new File(path + "minecraft.jar");
-        jarFile.renameTo(minecraftJar);
     }
 
     protected String getFileName(URL url)
@@ -427,6 +407,13 @@ public class GameUpdater implements Runnable
         e.printStackTrace();
         this.fatalError = true;
         this.fatalErrorDescription = "Fatal error occurred (" + this.state + "): " + error;
+    }
+
+    protected void renameJar(String path)
+    {
+        File jarFile = new File(path + this.clientVersion + ".jar");
+        File minecraftJar = new File(path + "minecraft.jar");
+        jarFile.renameTo(minecraftJar);
     }
 
     public boolean canPlayOffline()
