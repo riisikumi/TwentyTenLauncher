@@ -10,7 +10,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.security.*;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Enumeration;
 import java.util.Objects;
 import java.util.Vector;
@@ -26,23 +28,25 @@ public class GameUpdater implements Runnable
     public int totalSizeExtract;
     protected int state;
 
-    public String fatalErrorDescription;
     public String mainGameUrl;
-    private final String version = "client";
+    public String fatalErrorDescription;
     protected String subtaskMessage = "";
+    protected String clientVersion = "client";
+    protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
+    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/" + this.clientVersion + ".jar";
 
     protected URL[] urlList;
 
-    protected Thread loaderThread;
+    protected Thread lThread;
 
-    private static ClassLoader classLoader;
+    private static ClassLoader cLoader;
 
     public boolean fatalError;
     protected static boolean natives_loaded = false;
 
     public GameUpdater(String mainGameUrl)
     {
-        this.mainGameUrl = mainGameUrl + this.version;
+        this.mainGameUrl = mainGameUrl;
     }
 
     public void init()
@@ -98,9 +102,9 @@ public class GameUpdater implements Runnable
         }
         this.urlList = new URL[]
                 {
-                        new URL("https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/" + this.version + ".jar"),
-                        new URL("http://files.betacraft.uk/launcher/assets/" + libs),
-                        new URL("http://files.betacraft.uk/launcher/assets/" + natives),
+                        new URL(assetsUrl + libs),
+                        new URL(assetsUrl + natives),
+                        new URL(clientUrl),
                 };
     }
 
@@ -143,41 +147,48 @@ public class GameUpdater implements Runnable
             throw new RuntimeException(e);
         } finally
         {
-            this.loaderThread = null;
+            this.lThread = null;
         }
     }
 
-    protected void updateClasspath(File dir) throws IOException
+    protected void updateClasspath(File dir) throws MalformedURLException
     {
         this.state = 6;
         this.percentage = 95;
 
-        URL[] urls = new URL[1];
-        urls[0] = dir.toURI().toURL();
-
-        String path;
-        for (File file : Objects.requireNonNull(dir.listFiles()))
+        Vector<URL> urls = new Vector<>();
+        File[] files = dir.listFiles();
+        if (files != null)
         {
-            if (file.getName().endsWith(".jar"))
+            for (File file : files)
             {
-                path = file.getAbsolutePath();
-                path = path.replace("\\", "/");
-                urls = addURL(urls, new URL("file:///" + path));
+                if (file.getName().endsWith("jinput.jar")
+                        || file.getName().endsWith("lwjgl.jar")
+                        || file.getName().endsWith("lwjgl_util.jar")
+                        || file.getName().endsWith("minecraft.jar"))
+                {
+                    urls.add(file.toURI().toURL());
+                }
+            }
+        }
+        URL[] urlArray = new URL[urls.size()];
+        urls.copyInto(urlArray);
+
+        if (cLoader == null)
+        {
+            cLoader = new URLClassLoader(urlArray, GameUpdater.class.getClassLoader());
+        } else
+        {
+            try
+            {
+                cLoader.loadClass("net.minecraft.client.Minecraft");
+            } catch (ClassNotFoundException e)
+            {
+                this.fatalException("Failed to load Minecraft class", e);
             }
         }
 
-        if (classLoader == null)
-        {
-            classLoader = new URLClassLoader(urls)
-            {
-                @Override
-                protected PermissionCollection getPermissions(CodeSource cs)
-                {
-                    return super.getPermissions(cs);
-                }
-            };
-        }
-
+        String path;
         if (!(path = dir.getAbsolutePath()).endsWith(File.separator))
         {
             path = path + File.separator;
@@ -217,7 +228,7 @@ public class GameUpdater implements Runnable
 
     public Applet createApplet() throws ClassNotFoundException, InstantiationException, IllegalAccessException
     {
-        return (Applet) classLoader.loadClass("net.minecraft.client.MinecraftApplet").newInstance();
+        return (Applet) cLoader.loadClass("net.minecraft.client.MinecraftApplet").newInstance();
     }
 
     protected void downloadFiles(String path) throws Exception
@@ -396,7 +407,7 @@ public class GameUpdater implements Runnable
 
     protected void renameJar(String path)
     {
-        File jarFile = new File(path + this.version + ".jar");
+        File jarFile = new File(path + this.clientVersion + ".jar");
         File minecraftJar = new File(path + "minecraft.jar");
         jarFile.renameTo(minecraftJar);
     }
@@ -409,14 +420,6 @@ public class GameUpdater implements Runnable
             file = file.substring(0, file.indexOf("?"));
         }
         return file.substring(file.lastIndexOf("/") + 1);
-    }
-
-    protected URL[] addURL(URL[] urls, URL url)
-    {
-        URL[] newUrls = new URL[urls.length + 1];
-        System.arraycopy(urls, 0, newUrls, 0, urls.length);
-        newUrls[urls.length] = url;
-        return newUrls;
     }
 
     protected void fatalException(String error, Exception e)
