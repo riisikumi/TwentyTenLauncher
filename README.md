@@ -3,8 +3,6 @@ This launcher aims to repurpose the original Minecraft Launcher from June 29, 20
 
 The launcher ,by default, downloads the 'Beta 1.1_02' version of Minecraft, as it was the last version of Minecraft to be released in 2010. 
 
-// TODO for instruction on how to change. I will eventually write a Swing application to manually update properly.
-
 **You need Java 8u261 or greater to run this application.**
 
 ## Issues
