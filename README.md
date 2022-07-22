@@ -10,5 +10,4 @@ The launcher ,by default, downloads the 'Beta 1.1_02' version of Minecraft, as i
 ## Issues
 - - Game doesn't recognise authenticated accounts and will default to "Player".
 - - Skin does not update for cracked accounts and will default to "Player.png".
-- - HDPatcher does not apply when launching the game.
 > If you find any issues, please let me know about it! Thanks.
