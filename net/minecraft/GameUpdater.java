@@ -21,8 +21,7 @@ public class GameUpdater implements Runnable
     protected URL[] urlList;
     protected Thread thread;
     protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
-    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/"
-            + this.clientVersion + ".jar";
+    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/";
     protected String clientVersion = "client";
     protected String subtaskMessage = "";
     public String fatalErrorDescription;
@@ -91,7 +90,7 @@ public class GameUpdater implements Runnable
                 {
                         new URL(assetsUrl + libs),
                         new URL(assetsUrl + natives),
-                        new URL(clientUrl),
+                        new URL(clientUrl + this.clientVersion + ".jar"),
                 };
     }
 
