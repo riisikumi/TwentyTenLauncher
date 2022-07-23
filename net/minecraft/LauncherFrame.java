@@ -7,20 +7,22 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
 
 public class LauncherFrame extends Frame
 {
-    public static String launcherVersion = "0.7.2222";
-	public AuthFrame aFrame;
+    public static String launcherVersion = "0.7.2322";
+	public String sessionId;
 	public Launcher launcher;
-	public LauncherFrame lFrame;
+	public AuthFrame authFrame;
+	public LauncherFrame launcherFrame;
 
 	public LauncherFrame()
 	{
-		this.lFrame = this;
+		this.launcherFrame = this;
 		try
 		{
 			this.setIconImage(ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/favicon.png"))));
@@ -35,9 +37,9 @@ public class LauncherFrame extends Frame
 		this.setMinimumSize(new Dimension(320, 200));
 		this.setLocationRelativeTo(null);
 
-		this.aFrame = new AuthFrame(this);
-		this.add(this.aFrame, BorderLayout.CENTER);
-		this.aFrame.setPreferredSize(new Dimension(854, 480));
+		this.authFrame = new AuthFrame(this);
+		this.add(this.authFrame, BorderLayout.CENTER);
+		this.authFrame.setPreferredSize(new Dimension(854, 480));
 		this.pack();
 
 		this.addWindowListener(new WindowAdapter()
@@ -67,18 +69,18 @@ public class LauncherFrame extends Frame
 				username = "Player";
 			}
 			this.launcher = new Launcher();
-			this.launcher.customParameters.put("username", username);
+			this.launcher.parameters.put("username", username);
 			this.launcher.init();
 			this.removeAll();
 			this.add(this.launcher, "Center");
 			this.validate();
 			this.launcher.start();
-			this.aFrame = null;
+			this.authFrame = null;
 			this.setTitle("Minecraft");
 		} catch (Exception e)
 		{
 			e.printStackTrace();
-			this.aFrame.getError(e.toString());
+			this.authFrame.setError(e.toString());
 		}
 	}
 
@@ -86,85 +88,116 @@ public class LauncherFrame extends Frame
 	{
 		if (!checkConnection())
 		{
-			this.aFrame.getError("Can't connect to minecraft.net");
-			this.aFrame.offline();
+			this.authFrame.setError("Can't connect to minecraft.net");
+			this.authFrame.offline();
 		} else
 		{
 			try
 			{
-				String jsonParameters = "\"username\":\"" + username
-						+ "\",\"password\":\"" + password
-						+ "\",\"requestUser\":true}";
-				String response = Util.executePost("https://authserver.mojang.com/authenticate", jsonParameters);
-				if (response == null)
-				{
-					this.aFrame.getError("Can't connect to minecraft.net");
-					this.aFrame.offline();
-					return;
-				}
+				JSONObject agentParameters = new JSONObject();
+				agentParameters.put("name", "Minecraft");
+				agentParameters.put("version", 1);
 
-				JSONObject json = new JSONObject(response);
+				JSONObject jsonParameters = new JSONObject();
+				jsonParameters.put("agent", agentParameters);
+				jsonParameters.put("username", username);
+				jsonParameters.put("password", password);
+				jsonParameters.put("requestUser", true);
 
-				if (json.has("errorMessage"))
+				JSONObject jsonResponse = Util.excuteAuth("https://authserver.mojang.com/authenticate", String.valueOf(jsonParameters));
+				if (!jsonResponse.has("errorMessage"))
 				{
-					switch (json.getString("errorMessage"))
-					{
-						case "Invalid credentials. Account migrated, use email as username.":
-						case "Invalid credentials. Legacy account is non-premium account.":
-						case "Invalid credentials. Invalid username or password.":
-							this.aFrame.getError("Login failed");
-							break;
-						case "Forbidden":
-							if (username.isEmpty())
-							{
-								this.aFrame.getError("Can't connect to minecraft.net");
-								this.aFrame.offline();
-								return;
-							} else if (username.matches("^\\w+$")
-									&& username.length() > 2 && username.length() < 17)
-							{
-								this.playOffline(username);
-							} else
-							{
-								this.aFrame.getError("Login failed");
-								return;
-							}
-							break;
-						case "Migrated":
-							this.aFrame.getError("Migrated");
-							break;
-						default:
-							this.aFrame.getError(json.getString(response));
-							break;
-					}
-				} else
-				{
-					if (json.getJSONArray("availableProfiles").length() == 0)
+					if (jsonResponse.getJSONArray("availableProfiles").length() == 0)
 					{
 						this.playOffline(username);
+						this.authFrame.getLastLogin();
 					} else
 					{
-						username = json.getJSONObject("selectedProfile").getString("name");
+						username = jsonResponse.getJSONObject("selectedProfile").getString("name");
+						sessionId = jsonResponse.getString("clientToken") + ":"
+								+ jsonResponse.getString("accessToken") + ":"
+								+ jsonResponse.getJSONObject("selectedProfile").getString("id");
 
 						System.out.println("Username is '" + username + "'");
 						this.launcher = new Launcher();
-						this.launcher.customParameters.put("username", username);
+						this.launcher.parameters.put("username", username);
+						this.launcher.parameters.put("sessionid", sessionId);
 						this.launcher.init();
 						this.removeAll();
 						this.add(this.launcher, "Center");
 						this.validate();
 						this.launcher.start();
-						this.aFrame.getLastLogin();
-						this.aFrame = null;
-						this.setTitle("Minecraft");
+						this.refresh();
+					}
+					this.authFrame = null;
+					this.setTitle("Minecraft");
+				} else
+				{
+					switch (jsonResponse.getString("errorMessage"))
+					{
+						case "Forbidden":
+							if (username.matches("^\\w+$")
+									&& username.length() > 2 && username.length() < 17)
+							{
+								sessionId = "mockToken" + ":" + "mockAccessToken" + ":" + "mockUUID";
+
+								System.out.println("Username is '" + username + "'");
+								this.launcher = new Launcher();
+								this.launcher.parameters.put("username", username);
+								this.launcher.parameters.put("sessionid", sessionId);
+								this.launcher.init();
+								this.removeAll();
+								this.add(this.launcher, "Center");
+								this.validate();
+								this.launcher.start();
+								this.authFrame.getLastLogin();
+							} else if (username.isEmpty())
+							{
+								this.authFrame.setError("Can't connect to minecraft.net");
+								this.authFrame.offline();
+								return;
+							} else
+							{
+								this.authFrame.setError("Login failed");
+								return;
+							}
+							break;
+						case "Invalid credentials. Invalid username or password.":
+						case "Invalid credentials. Legacy account is non-premium account.":
+						case "Invalid credentials. Account migrated, use email as username.":
+							this.authFrame.setError("Login failed");
+							break;
+						case "Migrated":
+							this.authFrame.setError("Migrated");
+							break;
+						default:
+							this.authFrame.setError(jsonResponse.getString(String.valueOf(jsonResponse)));
+							break;
 					}
 				}
 			} catch (Exception e)
 			{
 				e.printStackTrace();
-				this.aFrame.getError(e.toString());
-				this.aFrame.offline();
+				this.authFrame.setError(e.toString());
+				this.authFrame.offline();
 			}
+		}
+	}
+
+	private void refresh()
+	{
+		try
+		{
+			JSONObject jsonResponse = Util.excuteAuth("https://authserver.mojang.com/refresh", sessionId);
+			if (!jsonResponse.has("errorMessage"))
+			{
+				sessionId = jsonResponse.getString("clientToken") + ":"
+						+ jsonResponse.getString("accessToken");
+				this.launcher.parameters.put("sessionid", sessionId);
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 
@@ -182,20 +215,61 @@ public class LauncherFrame extends Frame
 		}
 	}
 
+	protected static boolean checkForUpdate()
+	{
+		try
+		{
+			URL url = new URL("https://api.github.com/repos/sojlabjoi/AlphacraftLauncher/releases/latest");
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("Accept", "application/json");
+			if (connection.getResponseCode() != 200)
+			{
+				return false;
+			}
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			br.close();
+			connection.disconnect();
+
+			JSONObject json = new JSONObject(sb.toString());
+			String tag_name = json.getString("tag_name");
+			if (tag_name.compareTo(LauncherFrame.launcherVersion) > 0)
+			{
+				return true;
+			} else if (tag_name.compareTo(LauncherFrame.launcherVersion) == 0)
+			{
+				return false;
+			} else
+			{
+				return false;
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	public static boolean canPlayOffline(String username)
 	{
 		Launcher launcher = new Launcher();
-		launcher.init(username);
+		launcher.init(username, null);
 		return launcher.canPlayOffline();
 	}
 
 	public static void main(String[] args)
 	{
-		if (Runtime.getRuntime().maxMemory() / 1024L / 1024L < 511L)
-		{
-			System.setProperty("sun.java2d.d3d", "false");
-			System.setProperty("sun.java2d.pmoffscreen", "false");
-		}
+		System.setProperty("http.proxyHost", "betacraft.uk");
+		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+
 		LauncherFrame lFrame = new LauncherFrame();
 		lFrame.setVisible(true);
 	}

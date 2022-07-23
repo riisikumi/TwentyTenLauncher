@@ -1,7 +1,5 @@
 package net.minecraft;
 
-import org.json.JSONObject;
-
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -10,11 +8,12 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.Random;
@@ -57,7 +56,7 @@ public class AuthFrame extends Panel {
 		this.offlineButton.addActionListener(e -> lFrame.playOffline(this.emailTextField.getText()));
 		this.retryButton.addActionListener(ae ->
 		{
-			this.getError("");
+			this.setError("");
 			this.removeAll();
 			this.add(this.loginPanel());
 			this.validate();
@@ -72,11 +71,6 @@ public class AuthFrame extends Panel {
 				return new Insets(12, 24, 16, 32);
 			}
 
-			public void update(Graphics g)
-			{
-				this.paint(g);
-			}
-
 			public void paint(Graphics g)
 			{
 				super.paint(g);
@@ -85,6 +79,11 @@ public class AuthFrame extends Panel {
 				g.drawRect(1, 1, this.getWidth() - 3, this.getHeight() - 3);
 				g.setColor(Color.WHITE);
 				g.drawRect(2, 2, this.getWidth() - 5, this.getHeight() - 5);
+			}
+
+			public void update(Graphics g)
+			{
+				this.paint(g);
 			}
 		};
 		panel.setLayout(new BorderLayout(0, 8));
@@ -106,7 +105,7 @@ public class AuthFrame extends Panel {
 		Panel onlinePanel = new Panel(new BorderLayout());
 		try
 		{
-			if (outdated())
+			if (LauncherFrame.checkForUpdate())
 			{
 				Label label = new Label("You need to update the launcher!", 1) {
 					public void update(Graphics g)
@@ -195,11 +194,6 @@ public class AuthFrame extends Panel {
 				return new Insets(12, 24, 16, 32);
 			}
 
-			public void update(Graphics g)
-			{
-				this.paint(g);
-			}
-
 			public void paint(Graphics g)
 			{
 				super.paint(g);
@@ -208,6 +202,11 @@ public class AuthFrame extends Panel {
 				g.drawRect(1, 1, this.getWidth() - 3, this.getHeight() - 3);
 				g.setColor(Color.WHITE);
 				g.drawRect(2, 2, this.getWidth() - 5, this.getHeight() - 5);
+			}
+
+			public void update(Graphics g)
+			{
+				this.paint(g);
 			}
 		};
 		panel.setLayout(new BorderLayout());
@@ -233,7 +232,7 @@ public class AuthFrame extends Panel {
 		return panel;
 	}
 
-	public void getError(String error)
+	public void setError(String error)
 	{
 		this.removeAll();
 		this.add(this.loginPanel());
@@ -303,11 +302,6 @@ public class AuthFrame extends Panel {
 		return cipher;
 	}
 
-	public void update(Graphics g)
-	{
-		this.paint(g);
-	}
-
 	public void paint(Graphics g2)
 	{
 		if (bImg == null
@@ -337,56 +331,9 @@ public class AuthFrame extends Panel {
 		g2.drawImage(bImg, 0, 0, (getWidth() / 2) * 2, (getHeight() / 2) * 2, null);
 	}
 
-	private boolean outdated()
+	public void update(Graphics g)
 	{
-		//this method will be used to check if the launcher is outdated
-		//it will parse the JSON in https://api.github.com/repos/sojlabjoi/AlphacraftLauncher/releases/latest and returns the 'tag_name' value.
-		//then it will compare the tag_name with the current version of the launcher.
-		//if the tag_name is greater than the current version, it will return true.
-		//if the tag_name is less than or equal to the current version, it will return false.
-		//once it's done, we can use this boolean in other methods to determine if the launcher is outdated or not.
-		try
-		{
-			URL url = new URL("https://api.github.com/repos/sojlabjoi/AlphacraftLauncher/releases/latest");
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("GET");
-			connection.setRequestProperty("Accept", "application/json");
-			if (connection.getResponseCode() != 200)
-			{
-				return false;
-			}
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			StringBuilder sb = new StringBuilder();
-
-			String line;
-			while ((line = br.readLine()) != null)
-			{
-				sb.append(line);
-			}
-			br.close();
-			connection.disconnect();
-
-			JSONObject json = new JSONObject(sb.toString());
-			String tag_name = json.getString("tag_name");
-			if (tag_name.compareTo(LauncherFrame.launcherVersion) > 0)
-			{
-				System.out.println("Current version: " + LauncherFrame.launcherVersion);
-				System.out.println("New version: " + tag_name);
-				return true;
-			} else if (tag_name.compareTo(LauncherFrame.launcherVersion) == 0)
-			{
-				System.out.println("You have the latest version of the launcher!");
-				return false;
-			} else
-			{
-				return false;
-			}
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			return false;
-		}
+		this.paint(g);
 	}
 }
 

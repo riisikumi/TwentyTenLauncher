@@ -6,9 +6,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Util
 {
@@ -64,19 +67,34 @@ public class Util
 		}
 	}
 
-	public static String executePost(String url, String jsonParameters) throws IOException
+	public static JSONObject excuteAuth(String url, String jsonParameters) throws IOException
 	{
-		String agent = "{\"agent\":{\"name\":\"Minecraft\",\"version\":1},";
-
 		HttpClient client = HttpClientBuilder.create().build();
 
 		HttpPost post = new HttpPost(url);
-		post.setEntity(new StringEntity(agent + jsonParameters));
-		post.setHeader("Content-type", "application/json");
+		post.setHeader("Content-Type", "application/json");
+		post.setEntity(new StringEntity(jsonParameters));
 
 		HttpResponse response = client.execute(post);
 
-		return response != null ? EntityUtils.toString(response.getEntity()) : null;
+		return new JSONObject(response != null ? EntityUtils.toString(response.getEntity()) : "");
+	}
+
+	public static String sha1(String input) throws NoSuchAlgorithmException
+	{
+		int i = 0;
+
+		MessageDigest mDigest = MessageDigest.getInstance("SHA1");
+		byte[] result = mDigest.digest(input.getBytes());
+
+		StringBuilder sb = new StringBuilder();
+		while (i < result.length)
+		{
+			sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
+			i++;
+		}
+
+		return sb.toString();
 	}
 
     public enum OS

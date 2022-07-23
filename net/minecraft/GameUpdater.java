@@ -18,23 +18,23 @@ import java.util.zip.ZipFile;
 
 public class GameUpdater implements Runnable
 {
+    protected URL[] urlList;
+    protected Thread thread;
+    protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
+    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/"
+            + this.clientVersion + ".jar";
+    protected String clientVersion = "client";
+    protected String subtaskMessage = "";
+    public String fatalErrorDescription;
+    protected int state;
     public int percentage;
     public int currentSizeDownload;
     public int totalSizeDownload;
     public int currentSizeExtract;
     public int totalSizeExtract;
-    protected int state;
-    public String fatalErrorDescription;
-    protected String subtaskMessage = "";
-    protected String clientVersion = "client";
-    protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
-    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/"
-            + this.clientVersion + ".jar";
     public boolean fatalError;
     protected static boolean natives_loaded = false;
-    protected URL[] urlList;
-    protected Thread lThread;
-    private static ClassLoader cLoader;
+    private static ClassLoader classLoader;
 
     public void init()
     {
@@ -128,15 +128,16 @@ public class GameUpdater implements Runnable
             this.state = 7;
         } catch (MalformedURLException | PrivilegedActionException e)
         {
-            this.fatalException(e.getMessage(), e);
+            this.fatalErrorOccurred(e.getMessage(), e);
         } catch (Exception e)
         {
             throw new RuntimeException(e);
         } finally
         {
-            this.lThread = null;
+            this.thread = null;
         }
     }
+
     protected void updateClasspath(File dir) throws MalformedURLException
     {
         this.state = 6;
@@ -160,17 +161,17 @@ public class GameUpdater implements Runnable
         URL[] urlArray = new URL[urls.size()];
         urls.copyInto(urlArray);
 
-        if (cLoader == null)
+        if (classLoader == null)
         {
-            cLoader = new URLClassLoader(urlArray, GameUpdater.class.getClassLoader());
+            classLoader = new URLClassLoader(urlArray, GameUpdater.class.getClassLoader());
         } else
         {
             try
             {
-                cLoader.loadClass("net.minecraft.client.Minecraft");
+                classLoader.loadClass("net.minecraft.client.Minecraft");
             } catch (ClassNotFoundException e)
             {
-                this.fatalException("Failed to load Minecraft class", e);
+                this.fatalErrorOccurred("Failed to load Minecraft class", e);
             }
         }
 
@@ -208,14 +209,14 @@ public class GameUpdater implements Runnable
                 }
             } catch (Exception e)
             {
-                this.fatalException("Error while unloading natives", e);
+                this.fatalErrorOccurred("Error while unloading natives", e);
             }
         }
     }
 
     public Applet createApplet() throws ClassNotFoundException, InstantiationException, IllegalAccessException
     {
-        return (Applet) cLoader.loadClass("net.minecraft.client.MinecraftApplet").newInstance();
+        return (Applet) classLoader.loadClass("net.minecraft.client.MinecraftApplet").newInstance();
     }
 
     protected void downloadFiles(String path) throws Exception
@@ -388,7 +389,7 @@ public class GameUpdater implements Runnable
             this.subtaskMessage = "";
         } catch (Exception e)
         {
-            this.fatalException("Error while extracting archives", e);
+            this.fatalErrorOccurred("Error while extracting archives", e);
         }
     }
 
@@ -402,7 +403,7 @@ public class GameUpdater implements Runnable
         return file.substring(file.lastIndexOf("/") + 1);
     }
 
-    protected void fatalException(String error, Exception e)
+    protected void fatalErrorOccurred(String error, Exception e)
     {
         e.printStackTrace();
         this.fatalError = true;
@@ -430,7 +431,7 @@ public class GameUpdater implements Runnable
             }
         } catch (PrivilegedActionException e)
         {
-            this.fatalException("Failed to create working directory", e);
+            this.fatalErrorOccurred("Failed to create working directory", e);
             return false;
         }
 

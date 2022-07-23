@@ -14,23 +14,20 @@ import java.util.Objects;
 
 public class Launcher extends Applet implements AppletStub
 {
-    public Map<String, String> customParameters = new HashMap<>();
-    private int context = 0;
-    private boolean active = false;
-    private boolean gUpdaterStarted = false;
+    public Map<String, String> parameters = new HashMap<>();
+    public String serverAddress = null;
+    public String serverPort = "25565";
+    public String mppass = null;
     private Image img;
 
     private BufferedImage bImg;
+    private int context = 0;
+    private boolean active = false;
+    private boolean gameUpdaterStarted = false;
+
 
     private Applet applet;
-    private GameUpdater gUpdater;
-
-    public Launcher()
-    {
-        System.setProperty("http.proxyHost", "betacraft.uk");
-        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
-    }
-
+    private GameUpdater gameUpdater;
     @Override
     public boolean isActive()
     {
@@ -51,7 +48,7 @@ public class Launcher extends Applet implements AppletStub
         return super.isActive();
     }
 
-    public void init(String username)
+    public void init(String username, String sessionId)
     {
         try
         {
@@ -61,13 +58,14 @@ public class Launcher extends Applet implements AppletStub
         {
             e.printStackTrace();
         }
-        this.customParameters.put("username", username);
-        this.gUpdater = new GameUpdater();
+        this.parameters.put("username", username);
+        this.parameters.put("sessionid", sessionId);
+        this.gameUpdater = new GameUpdater();
     }
 
     public boolean canPlayOffline()
     {
-        return this.gUpdater.canPlayOffline();
+        return this.gameUpdater.canPlayOffline();
     }
 
     public void init()
@@ -77,7 +75,7 @@ public class Launcher extends Applet implements AppletStub
             this.applet.init();
             return;
         }
-        this.init(this.getParameter("username"));
+        this.init(this.getParameter("username"), this.getParameter("sessionid"));
     }
 
     @Override
@@ -86,16 +84,16 @@ public class Launcher extends Applet implements AppletStub
         if (this.applet != null)
         {
             this.applet.start();
-        } else if (!gUpdaterStarted)
+        } else if (!gameUpdaterStarted)
         {
             Thread t = new Thread(() ->
             {
-                Launcher.this.gUpdater.run();
+                Launcher.this.gameUpdater.run();
                 try
                 {
-                    if (!Launcher.this.gUpdater.fatalError)
+                    if (!Launcher.this.gameUpdater.fatalError)
                     {
-                        Launcher.this.replace(Launcher.this.gUpdater.createApplet());
+                        Launcher.this.replace(Launcher.this.gameUpdater.createApplet());
                     }
                 } catch (Exception e)
                 {
@@ -113,7 +111,7 @@ public class Launcher extends Applet implements AppletStub
             });
             t.setDaemon(true);
             t.start();
-            this.gUpdaterStarted = true;
+            this.gameUpdaterStarted = true;
         }
     }
 
@@ -181,7 +179,7 @@ public class Launcher extends Applet implements AppletStub
         }
         g2d.setColor(Color.LIGHT_GRAY);
         String title = "Updating Minecraft";
-        if (this.gUpdater.fatalError)
+        if (this.gameUpdater.fatalError)
         {
             title = "Failed to launch";
         }
@@ -190,26 +188,26 @@ public class Launcher extends Applet implements AppletStub
                 (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
                 (getHeight() / 2) / 2 - (g2d.getFontMetrics().getHeight() * 2));
         g2d.setFont(new Font(null, Font.PLAIN, 12));
-        title = this.gUpdater.getDescriptionForState();
-        if (this.gUpdater.fatalError)
+        title = this.gameUpdater.getDescriptionForState();
+        if (this.gameUpdater.fatalError)
         {
-            title = this.gUpdater.fatalErrorDescription;
+            title = this.gameUpdater.fatalErrorDescription;
         }
         g2d.drawString(title,
                 (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
                 (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight()));
-        title = this.gUpdater.subtaskMessage;
+        title = this.gameUpdater.subtaskMessage;
         g2d.drawString(title,
                 (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
                 (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight() * 2));
-        if (!this.gUpdater.fatalError)
+        if (!this.gameUpdater.fatalError)
         {
             g2d.setColor(Color.BLACK);
             g2d.fillRect(64, (getHeight() / 2) - 64, (getWidth() / 2) - 128 + 1, 5);
             g2d.setColor(new Color(0, 128, 0));
-            g2d.fillRect(64, (getHeight() / 2) - 64, this.gUpdater.percentage * ((getWidth() / 2) - 128) / 100, 4);
+            g2d.fillRect(64, (getHeight() / 2) - 64, this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100, 4);
             g2d.setColor(new Color(32, 160, 32));
-            g2d.fillRect(64, (getHeight() / 2) - 64 + 1, this.gUpdater.percentage * ((getWidth() / 2) - 128) / 100 - 2, 1);
+            g2d.fillRect(64, (getHeight() / 2) - 64 + 1, this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100 - 2, 1);
         }
         g2d.dispose();
         g2.drawImage(bImg, 0, 0, (getWidth() / 2) * 2, (getHeight() / 2) * 2, null);
@@ -217,16 +215,19 @@ public class Launcher extends Applet implements AppletStub
 
     public String getParameter(String name)
     {
-        if (this.customParameters.containsKey(name))
+        if (this.parameters.get(name) != null)
         {
-            return this.customParameters.get(name);
-        }
-        try
+            return this.parameters.get(name);
+        } else
         {
-            return super.getParameter(name);
-        } catch (Exception e)
-        {
-            return null;
+            try
+            {
+                return super.getParameter(name);
+            } catch (Exception e)
+            {
+                this.parameters.put(name, null);
+                return null;
+            }
         }
     }
 
