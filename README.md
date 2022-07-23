@@ -1,4 +1,4 @@
-<img align="center" width="1266" height="208" src="https://i.imgur.com/0U9Ekma.png">
+<img align="center" width="633" height="104" src="https://i.imgur.com/0U9Ekma.png">
 ## What is AlphacraftLauncher?
 AlphacraftLauncher is a repurpose of the original Minecraft Launcher released on 29 June 2010.
 
