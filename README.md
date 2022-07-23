@@ -16,4 +16,4 @@ By default, AlphacraftLauncher will download **Beta 1.1_02**, as it was the last
 ![Launcher](https://i.imgur.com/W8lS5HV.png)
 
 ## TODO
-> Signing in using a *valid* Microsoft account.
+! Signing in using a *valid* Microsoft account.
