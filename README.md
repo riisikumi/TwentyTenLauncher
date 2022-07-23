@@ -10,7 +10,7 @@ By default, AlphacraftLauncher will download **Beta 1.1_02**, as it was the last
 ## Features
 - You can sign in using any *valid* Mojang account that owns Minecraft and hasn't been migrated to Microsoft... yet.
   - You can sign in using any *valid* Mojang account that doesn't own Minecraft.
-  - You can sign in using any *valid* username, just like the original launcher before the "getversions.jsp" was implemented.
+  - You can sign in using any *valid* username, just like the original launcher before the 'excutePost()' implementation.
 - Support for skins and appropriate sounds for different Alpha/Beta versions of Minecraft.
 - Out-of-box compatibility with MCPatcher (HDTextureFix) and legacy mods (ModLoader).
 ![Launcher](https://i.imgur.com/W8lS5HV.png)
