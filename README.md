@@ -1,7 +1,7 @@
 ## What is AlphacraftLauncher?
 AlphacraftLauncher is a repurpose of the original Minecraft Launcher released on 29 June 2010.
 
-It enables you to play versions from **infdev (20100629)** all the way to **Beta 1.2_02**, as they were the start and end of the original Minecraft Launcher.
+It enables you to play versions from **infdev (20100629)** all the way to **Beta 1.2_02** as they were the start and end of the original Minecraft Launcher.
 
 By default, AlphacraftLauncher will download **Beta 1.1_02**, as it was the last version of Minecraft to be released in 2010, and is what powers 'AlphaPlace', the popular legacy Minecraft server.
 
