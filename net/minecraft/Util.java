@@ -10,97 +10,63 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-public class Util
-{
-	public static final String OPERATING_SYSTEM = System.getProperty("os.name").toLowerCase();
-	private static final String USER_HOME = System.getProperty("user.home", ".");
+public class Util {
+    public static final String OPERATING_SYSTEM = System.getProperty("os.name").toLowerCase();
+    private static final String USER_HOME = System.getProperty("user.home", ".");
 
-	public static File getWorkingDirectory()
-	{
-		File workingDirectory;
-		switch (getPlatform())
-		{
-			case linux:
-				workingDirectory = new File(USER_HOME, ".minecraft/");
-				break;
-			case osx:
-				workingDirectory = new File(USER_HOME, "Library/Application Support/minecraft/");
-				break;
-			case windows:
-				String applicationData = System.getenv("APPDATA");
-				if (applicationData != null)
-				{
-					workingDirectory = new File(applicationData, ".minecraft/");
-					break;
-				}
-				workingDirectory = new File(USER_HOME, ".minecraft/");
-				break;
-			default:
-				workingDirectory = new File(USER_HOME, "minecraft/");
-				break;
-		}
-		if (!workingDirectory.exists() && !workingDirectory.mkdirs())
-			throw new RuntimeException("The working directory could not be created: " + workingDirectory);
+    public static File getWorkingDirectory() {
+        File workingDirectory;
+        switch (getPlatform()) {
+            case linux:
+                workingDirectory = new File(USER_HOME, ".minecraft/");
+                break;
+            case osx:
+                workingDirectory = new File(USER_HOME, "Library/Application Support/minecraft/");
+                break;
+            case windows:
+                String applicationData = System.getenv("APPDATA");
+                if (applicationData != null) {
+                    workingDirectory = new File(applicationData, ".minecraft/");
+                    break;
+                }
+                workingDirectory = new File(USER_HOME, ".minecraft/");
+                break;
+            default:
+                workingDirectory = new File(USER_HOME, "minecraft/");
+                break;
+        }
+        if (!workingDirectory.exists() && !workingDirectory.mkdirs())
+            throw new RuntimeException("The working directory could not be created: " + workingDirectory);
 
-		return workingDirectory;
-	}
+        return workingDirectory;
+    }
 
-	public static OS getPlatform()
-	{
-		if (OPERATING_SYSTEM.contains("mac"))
-		{
-			return OS.osx;
-		} else if (OPERATING_SYSTEM.contains("nix")
-				|| OPERATING_SYSTEM.contains("nux")
-				|| OPERATING_SYSTEM.contains("aix"))
-		{
-			return OS.linux;
-		} else if (OPERATING_SYSTEM.contains("win"))
-		{
-			return OS.windows;
-		} else
-		{
-			throw new RuntimeException("Unknown OS: " + OPERATING_SYSTEM);
-		}
-	}
+    public static OS getPlatform() {
+        if (OPERATING_SYSTEM.contains("mac")) {
+            return OS.osx;
+        } else if (OPERATING_SYSTEM.contains("nix") || OPERATING_SYSTEM.contains("nux") || OPERATING_SYSTEM.contains("aix")) {
+            return OS.linux;
+        } else if (OPERATING_SYSTEM.contains("win")) {
+            return OS.windows;
+        } else {
+            throw new RuntimeException("Unknown OS: " + OPERATING_SYSTEM);
+        }
+    }
 
-	public static JSONObject excuteAuth(String url, String jsonParameters) throws IOException
-	{
-		HttpClient client = HttpClientBuilder.create().build();
+    public static JSONObject excutePost(String url, String jsonParameters) throws IOException {
+        HttpClient client = HttpClientBuilder.create().build();
 
-		HttpPost post = new HttpPost(url);
-		post.setHeader("Content-Type", "application/json");
-		post.setEntity(new StringEntity(jsonParameters));
+        HttpPost post = new HttpPost(url);
+        post.setHeader("Content-Type", "application/json");
+        post.setEntity(new StringEntity(jsonParameters));
 
-		HttpResponse response = client.execute(post);
+        HttpResponse response = client.execute(post);
 
-		return new JSONObject(response != null ? EntityUtils.toString(response.getEntity()) : "");
-	}
+        return new JSONObject(response != null ? EntityUtils.toString(response.getEntity()) : "");
+    }
 
-	public static String sha1(String input) throws NoSuchAlgorithmException
-	{
-		int i = 0;
-
-		MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-		byte[] result = mDigest.digest(input.getBytes());
-
-		StringBuilder sb = new StringBuilder();
-		while (i < result.length)
-		{
-			sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-			i++;
-		}
-
-		return sb.toString();
-	}
-
-    public enum OS
-	{
-		osx,
-		linux,
-		windows
-	}
+    public enum OS {
+        osx, linux, windows
+    }
 }
