@@ -112,6 +112,8 @@ public class AuthFrame extends Panel {
         panel.setLayout(new BorderLayout(0, 8));
         panel.setBackground(Color.GRAY);
         panel.add(this.errorLabel, BorderLayout.NORTH);
+        this.errorLabel.setFont(new Font(null, Font.ITALIC, 16));
+        this.errorLabel.setForeground(new Color(128, 0, 0));
 
         Panel text = new Panel(new GridLayout(0, 1, 0, 2));
         panel.add(text, BorderLayout.WEST);
@@ -124,6 +126,7 @@ public class AuthFrame extends Panel {
         textField.add(this.emailTextField);
         textField.add(this.passwordTextField);
         textField.add(this.rememberCheckbox);
+        this.passwordTextField.setEchoChar('*');
 
         Panel onlinePanel = new Panel(new BorderLayout());
         try {
@@ -135,9 +138,12 @@ public class AuthFrame extends Panel {
 
                     public void paint(Graphics g) {
                         super.paint(g);
-                        g.drawLine(7, this.getHeight() - 6,
-                                this.getFontMetrics(this.getFont()).stringWidth(this.getText()) + 6,
-                                this.getHeight() - 6);
+                        g.setColor(Color.BLUE);
+                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2,
+                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1,
+                                this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2
+                                        + g.getFontMetrics().stringWidth(this.getText()),
+                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
                     }
                 };
                 label.setForeground(Color.BLUE);
@@ -161,9 +167,11 @@ public class AuthFrame extends Panel {
 
                     public void paint(Graphics g) {
                         super.paint(g);
-                        g.drawLine(7, this.getHeight() - 6,
-                                this.getFontMetrics(this.getFont()).stringWidth(this.getText()) + 6,
-                                this.getHeight() - 6);
+                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2,
+                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1,
+                                this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2
+                                        + g.getFontMetrics().stringWidth(this.getText()),
+                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
                     }
                 };
                 label.setForeground(Color.BLUE);
@@ -187,12 +195,6 @@ public class AuthFrame extends Panel {
         }
         panel.add(onlinePanel, BorderLayout.SOUTH);
         onlinePanel.add(this.loginButton, BorderLayout.EAST);
-
-        this.errorLabel.setFont(new Font(null, Font.ITALIC, 16));
-        this.errorLabel.setForeground(new Color(128, 0, 0));
-
-        this.passwordTextField.setEchoChar('*');
-
         return panel;
     }
 
@@ -219,6 +221,8 @@ public class AuthFrame extends Panel {
         panel.setBackground(Color.GRAY);
         panel.add(new Panel(), BorderLayout.CENTER);
         panel.add(this.errorLabel, BorderLayout.NORTH);
+        this.errorLabel.setFont(new Font(null, Font.ITALIC, 16));
+        this.errorLabel.setForeground(new Color(128, 0, 0));
 
         Panel offlinePanel = new Panel(new BorderLayout());
         offlinePanel.add(new Panel(), BorderLayout.CENTER);
@@ -231,9 +235,6 @@ public class AuthFrame extends Panel {
         if (!canPlayOffline) {
             panel.add(new Label("Play online once to enable offline", 0));
         }
-        this.errorLabel.setFont(new Font(null, Font.ITALIC, 16));
-        this.errorLabel.setForeground(new Color(128, 0, 0));
-
         return panel;
     }
 
@@ -292,7 +293,6 @@ public class AuthFrame extends Panel {
         }
 
         Graphics2D g2d = (Graphics2D) bImg.getGraphics();
-
         for (int i = 0; i <= (getWidth() / 2) / 32; i++) {
             for (int j = 0; j <= (getHeight() / 2) / 32; j++) {
                 g2d.drawImage(img, i * 32, j * 32, null);

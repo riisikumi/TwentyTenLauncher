@@ -1,10 +1,8 @@
 package net.minecraft;
 
 import javax.imageio.ImageIO;
-
 import java.applet.Applet;
 import java.applet.AppletStub;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -12,12 +10,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-
 import java.io.IOException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -130,50 +125,51 @@ public class Launcher extends Applet implements AppletStub {
     }
 
     public void paint(Graphics g2) {
-        if (this.applet != null) {
-            return;
-        }
-        if (bImg == null || bImg.getWidth() != getWidth() / 2 || bImg.getHeight() != getHeight() / 2) {
-            bImg = new BufferedImage(getWidth() / 2, getHeight() / 2, BufferedImage.TYPE_INT_RGB);
-        }
-
-        Graphics2D g2d = (Graphics2D) bImg.getGraphics();
-
-        for (int i = 0; i <= (getWidth() / 2) / 32; i++) {
-            for (int j = 0; j <= (getHeight() / 2) / 32; j++) {
-                g2d.drawImage(img, i * 32, j * 32, null);
+        if (this.applet == null) {
+            if (bImg == null || bImg.getWidth() != getWidth() / 2 || bImg.getHeight() != getHeight() / 2) {
+                bImg = new BufferedImage(getWidth() / 2, getHeight() / 2, BufferedImage.TYPE_INT_RGB);
             }
+
+            Graphics2D g2d = (Graphics2D) bImg.getGraphics();
+            for (int i = 0; i <= (getWidth() / 2) / 32; i++) {
+                for (int j = 0; j <= (getHeight() / 2) / 32; j++) {
+                    g2d.drawImage(img, i * 32, j * 32, null);
+                }
+            }
+            g2d.setColor(Color.LIGHT_GRAY);
+
+            String title = "Updating Minecraft";
+            if (this.gameUpdater.fatalError) {
+                title = "Failed to launch";
+            }
+            g2d.setFont(new Font(null, Font.BOLD, 20));
+            g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
+                    (getHeight() / 2) / 2 - (g2d.getFontMetrics().getHeight() * 2));
+            g2d.setFont(new Font(null, Font.PLAIN, 12));
+            title = this.gameUpdater.getDescriptionForState();
+
+            if (this.gameUpdater.fatalError) {
+                title = this.gameUpdater.fatalErrorDescription;
+            }
+            g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
+                    (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight()));
+            title = this.gameUpdater.subtaskMessage;
+            g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
+                    (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight() * 2));
+
+            if (!this.gameUpdater.fatalError) {
+                g2d.setColor(Color.BLACK);
+                g2d.fillRect(64, (getHeight() / 2) - 64, (getWidth() / 2) - 128 + 1, 5);
+                g2d.setColor(new Color(0, 128, 0));
+                g2d.fillRect(64, (getHeight() / 2) - 64,
+                        this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100, 4);
+                g2d.setColor(new Color(32, 160, 32));
+                g2d.fillRect(64, (getHeight() / 2) - 64 + 1,
+                        this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100 - 2, 1);
+            }
+            g2d.dispose();
+            g2.drawImage(bImg, 0, 0, (getWidth() / 2) * 2, (getHeight() / 2) * 2, null);;
         }
-        g2d.setColor(Color.LIGHT_GRAY);
-        String title = "Updating Minecraft";
-        if (this.gameUpdater.fatalError) {
-            title = "Failed to launch";
-        }
-        g2d.setFont(new Font(null, Font.BOLD, 20));
-        g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
-                (getHeight() / 2) / 2 - (g2d.getFontMetrics().getHeight() * 2));
-        g2d.setFont(new Font(null, Font.PLAIN, 12));
-        title = this.gameUpdater.getDescriptionForState();
-        if (this.gameUpdater.fatalError) {
-            title = this.gameUpdater.fatalErrorDescription;
-        }
-        g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
-                (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight()));
-        title = this.gameUpdater.subtaskMessage;
-        g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
-                (getHeight() / 2) / 2 + (g2d.getFontMetrics().getHeight() * 2));
-        if (!this.gameUpdater.fatalError) {
-            g2d.setColor(Color.BLACK);
-            g2d.fillRect(64, (getHeight() / 2) - 64, (getWidth() / 2) - 128 + 1, 5);
-            g2d.setColor(new Color(0, 128, 0));
-            g2d.fillRect(64, (getHeight() / 2) - 64,
-                    this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100, 4);
-            g2d.setColor(new Color(32, 160, 32));
-            g2d.fillRect(64, (getHeight() / 2) - 64 + 1,
-                    this.gameUpdater.percentage * ((getWidth() / 2) - 128) / 100 - 2, 1);
-        }
-        g2d.dispose();
-        g2.drawImage(bImg, 0, 0, (getWidth() / 2) * 2, (getHeight() / 2) * 2, null);
     }
 
     public void update(Graphics g) {

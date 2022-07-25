@@ -45,7 +45,9 @@ public class Util {
     public static OS getPlatform() {
         if (OPERATING_SYSTEM.contains("mac")) {
             return OS.osx;
-        } else if (OPERATING_SYSTEM.contains("nix") || OPERATING_SYSTEM.contains("nux") || OPERATING_SYSTEM.contains("aix")) {
+        } else if (OPERATING_SYSTEM.contains("nix")
+                || OPERATING_SYSTEM.contains("nux")
+                || OPERATING_SYSTEM.contains("aix")) {
             return OS.linux;
         } else if (OPERATING_SYSTEM.contains("win")) {
             return OS.windows;
@@ -62,7 +64,6 @@ public class Util {
         post.setEntity(new StringEntity(jsonParameters));
 
         HttpResponse response = client.execute(post);
-
         return new JSONObject(response != null ? EntityUtils.toString(response.getEntity()) : "");
     }
 

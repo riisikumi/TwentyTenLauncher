@@ -10,7 +10,6 @@ public class MinecraftLauncher {
 
                 ArrayList<String> argument = new ArrayList<>();
                 argument.add("java");
-                argument.add("-Xmx1G");
                 argument.add("-Xms512M");
                 argument.add("-Dsun.java2d.d3d=false");
                 argument.add("-Dsun.java2d.opengl=false");

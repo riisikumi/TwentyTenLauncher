@@ -18,7 +18,7 @@ import java.net.URLConnection;
 import java.util.Objects;
 
 public class LauncherFrame extends Frame {
-    public static String launcherVersion = "0.7.2422";
+    public static String launcherVersion = "0.7.2522";
     public String sessionId;
     public Launcher launcher;
     public AuthFrame authFrame;
