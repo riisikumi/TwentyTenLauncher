@@ -124,7 +124,10 @@ public class GameUpdater implements Runnable {
         File[] files = dir.listFiles();
         if (files != null) {
             for (File file : files) {
-                if (file.getName().contains(".jar")) {
+                if (file.getName().contains("jinput.jar")
+                        || file.getName().contains("lwjgl.jar")
+                        || file.getName().contains("lwjgl_util.jar")
+                        || file.getName().contains("minecraft.jar")) {
                     urls.add(file.toURI().toURL());
                 }
             }
