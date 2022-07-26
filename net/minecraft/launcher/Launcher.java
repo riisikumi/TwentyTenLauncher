@@ -1,12 +1,14 @@
-package net.minecraft;
+package net.minecraft.launcher;
+
+import net.minecraft.auth.yggdrasil.YAuthenticate;
 
 import java.util.ArrayList;
 
-public class MinecraftLauncher {
+public class Launcher {
     public static void main(String[] args) {
         if (Runtime.getRuntime().maxMemory() / 1024L / 1024L < 511L) {
             try {
-                String jarPath = MinecraftLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                String jarPath = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 
                 ArrayList<String> argument = new ArrayList<>();
                 argument.add("java");
@@ -17,7 +19,7 @@ public class MinecraftLauncher {
                 argument.add("-Dsun.java2d.pmoffscreen=false");
                 argument.add("-cp");
                 argument.add(jarPath);
-                argument.add("net.minecraft.LauncherFrame");
+                argument.add("net.minecraft.launcher.LauncherFrame");
 
                 ProcessBuilder pb = new ProcessBuilder(argument);
                 Process process = pb.start();
@@ -28,10 +30,10 @@ public class MinecraftLauncher {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LauncherFrame.main(args);
+                YAuthenticate.main(args);
             }
         } else {
-            LauncherFrame.main(args);
+            YAuthenticate.main(args);
         }
     }
 }

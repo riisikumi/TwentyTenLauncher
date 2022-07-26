@@ -1,12 +1,8 @@
-package net.minecraft;
+package net.minecraft.auth;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
+import net.minecraft.auth.yggdrasil.YAuthenticate;
+import net.minecraft.launcher.LauncherUpdater;
+
 import javax.imageio.ImageIO;
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -16,7 +12,6 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
@@ -27,18 +22,15 @@ import java.awt.Panel;
 import java.awt.TextField;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
+import java.awt.image.VolatileImage;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.Objects;
-import java.util.Random;
 
-public class AuthFrame extends Panel {
+public class AFrame extends Panel {
+    private final ALastLogin aLastLogin = new ALastLogin(this);
+    private final net.minecraft.auth.AFrameGraphics aFrameGraphics = new AFrameGraphics(this);
     public Label errorLabel = new Label("", 1);
     public TextField emailTextField = new TextField(20);
     public TextField passwordTextField = new TextField(20);
@@ -46,28 +38,27 @@ public class AuthFrame extends Panel {
     public Button loginButton = new Button("Login");
     public Button retryButton = new Button("Try again");
     public Button offlineButton = new Button("Play offline");
-    private Image img;
-    private BufferedImage bImg;
+    private Image image;
+    private VolatileImage volatileImage;
 
-    public AuthFrame(final LauncherFrame lFrame) {
+    public AFrame(final YAuthenticate yAuthenticate) {
         try {
-            img = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/dirt.png")))
+            image = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("dirt.png")))
                     .getScaledInstance(32, 32, Image.SCALE_AREA_AVERAGING);
         } catch (IOException e) {
             e.printStackTrace();
         }
         this.setLayout(new GridBagLayout());
         this.add(this.loginPanel());
-
-        this.readLastLogin();
+        this.aLastLogin.readLastLogin();
         this.loginButton.addActionListener(ae -> {
             try {
-                lFrame.login(this.emailTextField.getText(), this.passwordTextField.getText());
+                yAuthenticate.login(this.emailTextField.getText(), this.passwordTextField.getText());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
-        this.offlineButton.addActionListener(e -> lFrame.playOffline(this.emailTextField.getText()));
+        this.offlineButton.addActionListener(e -> yAuthenticate.playOffline(this.emailTextField.getText()));
         this.retryButton.addActionListener(ae -> {
             this.setError("");
             this.removeAll();
@@ -76,21 +67,7 @@ public class AuthFrame extends Panel {
         });
     }
 
-    private static Cipher getCipher(int mode) throws Exception {
-        Random random = new Random(43287234L);
-        byte[] salt = new byte[8];
-        random.nextBytes(salt);
-
-        PBEParameterSpec ps = new PBEParameterSpec(salt, 5);
-        SecretKey sk = SecretKeyFactory.getInstance("PBEWithMD5AndDES")
-                .generateSecret(new PBEKeySpec("passwordfile".toCharArray()));
-
-        Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
-        cipher.init(mode, sk, ps);
-        return cipher;
-    }
-
-    private Panel loginPanel() {
+    public Panel loginPanel() {
         Panel panel = new Panel() {
             public Insets getInsets() {
                 return new Insets(12, 24, 16, 32);
@@ -130,7 +107,7 @@ public class AuthFrame extends Panel {
 
         Panel onlinePanel = new Panel(new BorderLayout());
         try {
-            if (LauncherFrame.checkForUpdate()) {
+            if (LauncherUpdater.checkForUpdate()) {
                 Label label = new Label("You need to update the launcher!", 1) {
                     public void update(Graphics g) {
                         this.paint(g);
@@ -139,11 +116,7 @@ public class AuthFrame extends Panel {
                     public void paint(Graphics g) {
                         super.paint(g);
                         g.setColor(Color.BLUE);
-                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2,
-                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1,
-                                this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2
-                                        + g.getFontMetrics().stringWidth(this.getText()),
-                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
+                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2, this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1, this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2 + g.getFontMetrics().stringWidth(this.getText()), this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
                     }
                 };
                 label.setForeground(Color.BLUE);
@@ -152,8 +125,7 @@ public class AuthFrame extends Panel {
                 label.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent me) {
                         try {
-                            Desktop.getDesktop().browse(
-                                    new URI("https://github.com/sojlabjoi/AlphacraftLauncher/releases/latest"));
+                            Desktop.getDesktop().browse(new URI("https://github.com/sojlabjoi/AlphacraftLauncher/releases/latest"));
                         } catch (IOException | URISyntaxException e) {
                             e.printStackTrace();
                         }
@@ -167,11 +139,7 @@ public class AuthFrame extends Panel {
 
                     public void paint(Graphics g) {
                         super.paint(g);
-                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2,
-                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1,
-                                this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2
-                                        + g.getFontMetrics().stringWidth(this.getText()),
-                                this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
+                        g.drawLine(this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2, this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1, this.getBounds().width / 2 - g.getFontMetrics().stringWidth(this.getText()) / 2 + g.getFontMetrics().stringWidth(this.getText()), this.getBounds().height / 2 + g.getFontMetrics().getHeight() / 2 - 1);
                     }
                 };
                 label.setForeground(Color.BLUE);
@@ -180,10 +148,7 @@ public class AuthFrame extends Panel {
                 label.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent me) {
                         try {
-                            Desktop.getDesktop().browse(new URI("https://signup.live.com/signup"
-                                    + "?cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d"
-                                    + "&client_id=000000004420578E"
-                                    + "&lic=1"));
+                            Desktop.getDesktop().browse(new URI("https://signup.live.com/signup" + "?cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d" + "&client_id=000000004420578E" + "&lic=1"));
                         } catch (IOException | URISyntaxException e) {
                             e.printStackTrace();
                         }
@@ -198,7 +163,7 @@ public class AuthFrame extends Panel {
         return panel;
     }
 
-    private Panel offlinePanel() {
+    public Panel offlinePanel() {
         Panel panel = new Panel() {
             public Insets getInsets() {
                 return new Insets(12, 24, 16, 32);
@@ -230,12 +195,25 @@ public class AuthFrame extends Panel {
         offlinePanel.add(this.offlineButton, BorderLayout.WEST);
         panel.add(offlinePanel, BorderLayout.SOUTH);
 
-        boolean canPlayOffline = LauncherFrame.canPlayOffline(this.emailTextField.getText());
+        boolean canPlayOffline = YAuthenticate.canPlayOffline(this.emailTextField.getText());
         this.offlineButton.setEnabled(canPlayOffline);
         if (!canPlayOffline) {
-            panel.add(new Label("Play online once to enable offline", 0));
+            panel.add(new Label("Play online once to enable setOffline", 0));
         }
         return panel;
+    }
+
+    public void paint(Graphics g2) {
+
+        aFrameGraphics.paint(g2);
+    }
+
+    public void update(Graphics g) {
+        aFrameGraphics.update(g);
+    }
+
+    public void setVolatileImage(VolatileImage volatileImage) {
+        this.volatileImage = volatileImage;
     }
 
     public void setError(String error) {
@@ -245,71 +223,33 @@ public class AuthFrame extends Panel {
         this.validate();
     }
 
-    public void offline() {
+    public void setOffline() {
         this.removeAll();
         this.add(this.offlinePanel());
         this.validate();
     }
 
     public void getLastLogin() {
-        writeLastLogin();
+        aLastLogin.writeLastLogin();
     }
 
-    public void writeLastLogin() {
-        try {
-            File lastLogin = new File(Util.getWorkingDirectory(), "lastlogin");
-            Cipher cipher = getCipher(1);
-
-            DataOutputStream dos = new DataOutputStream(
-                    new CipherOutputStream(Files.newOutputStream(lastLogin.toPath()), cipher));
-            dos.writeUTF(emailTextField.getText());
-            dos.writeUTF(this.rememberCheckbox.getState() ? passwordTextField.getText() : "");
-            dos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public Image getImage() {
+        return image;
     }
 
-    private void readLastLogin() {
-        try {
-            File lastLogin = new File(Util.getWorkingDirectory(), "lastlogin");
-            Cipher cipher = getCipher(2);
-
-            DataInputStream dis = new DataInputStream(
-                    new CipherInputStream(Files.newInputStream(lastLogin.toPath()), cipher));
-            this.emailTextField.setText(dis.readUTF());
-            this.passwordTextField.setText(dis.readUTF());
-
-            this.rememberCheckbox.setState(passwordTextField.getText().length() > 0);
-            dis.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public VolatileImage getVolatileImage() {
+        return volatileImage;
     }
 
-    public void paint(Graphics g2) {
-        if (bImg == null || bImg.getWidth() != getWidth() / 2 || bImg.getHeight() != getHeight() / 2) {
-            bImg = new BufferedImage(getWidth() / 2, getHeight() / 2, BufferedImage.TYPE_INT_RGB);
-        }
-
-        Graphics2D g2d = (Graphics2D) bImg.getGraphics();
-        for (int i = 0; i <= (getWidth() / 2) / 32; i++) {
-            for (int j = 0; j <= (getHeight() / 2) / 32; j++) {
-                g2d.drawImage(img, i * 32, j * 32, null);
-            }
-        }
-
-        String title = "Minecraft Launcher";
-        g2d.setFont(new Font(null, Font.BOLD, 20));
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.drawString(title, (getWidth() / 2) / 2 - (g2d.getFontMetrics().stringWidth(title) / 2),
-                (getHeight() / 2) / 2 - (g2d.getFontMetrics().getHeight() * 2));
-        g2d.dispose();
-        g2.drawImage(bImg, 0, 0, (getWidth() / 2) * 2, (getHeight() / 2) * 2, null);
+    public TextField getEmailTextField() {
+        return this.emailTextField;
     }
 
-    public void update(Graphics g) {
-        this.paint(g);
+    public TextField getPasswordTextField() {
+        return this.passwordTextField;
+    }
+
+    public Checkbox getRememberCheckbox() {
+        return this.rememberCheckbox;
     }
 }
-

@@ -18,7 +18,8 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class GameUpdater implements Runnable {
+@SuppressWarnings("ResultOfMethodCallIgnored")
+public class MCUpdater implements Runnable {
     protected static boolean natives_loaded = false;
     private static ClassLoader classLoader;
     public String fatalErrorDescription;
@@ -66,7 +67,7 @@ public class GameUpdater implements Runnable {
 
         String libs;
         String natives;
-        switch (Util.getPlatform()) {
+        switch (MCUtils.getPlatform()) {
             case osx:
                 libs = "libs-osx.zip";
                 natives = "natives-osx.zip";
@@ -80,7 +81,7 @@ public class GameUpdater implements Runnable {
                 natives = "natives-windows.zip";
                 break;
             default:
-                throw new RuntimeException("Unknown OS: " + Util.OPERATING_SYSTEM);
+                throw new RuntimeException("Unknown OS: " + MCUtils.osName);
         }
         this.urlList = new URL[]{new URL(assetsUrl + libs), new URL(assetsUrl + natives), new URL(clientUrl + this.clientVersion + ".jar"),};
     }
@@ -91,7 +92,7 @@ public class GameUpdater implements Runnable {
         this.percentage = 5;
         try {
             this.loadFileURLs();
-            String path = AccessController.doPrivileged((PrivilegedExceptionAction<String>) () -> Util.getWorkingDirectory() + File.separator + "bin" + File.separator);
+            String path = AccessController.doPrivileged((PrivilegedExceptionAction<String>) () -> MCUtils.getWorkingDirectory() + File.separator + "bin" + File.separator);
 
             File dir = new File(path);
             if (!dir.exists()) {
@@ -136,7 +137,7 @@ public class GameUpdater implements Runnable {
         URL[] urlArray = new URL[urls.size()];
         urls.copyInto(urlArray);
         if (classLoader == null) {
-            classLoader = new URLClassLoader(urlArray, GameUpdater.class.getClassLoader());
+            classLoader = new URLClassLoader(urlArray, MCUpdater.class.getClassLoader());
         } else {
             try {
                 classLoader.loadClass("net.minecraft.client.Minecraft");
@@ -292,7 +293,7 @@ public class GameUpdater implements Runnable {
             if (!libsDir.exists()) {
                 libsDir.mkdirs();
             } else {
-                switch (Util.getPlatform()) {
+                switch (MCUtils.getPlatform()) {
                     case windows:
                         libsZip = "libs-windows.zip";
                         nativesZip = "natives-windows.zip";
@@ -306,7 +307,7 @@ public class GameUpdater implements Runnable {
                         nativesZip = "natives-osx.zip";
                         break;
                     default:
-                        throw new RuntimeException("Unknown OS: " + Util.OPERATING_SYSTEM);
+                        throw new RuntimeException("Unknown OS: " + MCUtils.osName);
                 }
                 extractZIP(path + libsZip, String.valueOf(libsDir));
                 extractZIP(path + nativesZip, libsDir + File.separator + "natives");
@@ -340,7 +341,7 @@ public class GameUpdater implements Runnable {
     public boolean canPlayOffline() {
         File dir;
         try {
-            String path = AccessController.doPrivileged((PrivilegedExceptionAction<String>) () -> Util.getWorkingDirectory() + File.separator + "bin" + File.separator);
+            String path = AccessController.doPrivileged((PrivilegedExceptionAction<String>) () -> MCUtils.getWorkingDirectory() + File.separator + "bin" + File.separator);
             dir = new File(path);
             if (!dir.exists() || Objects.requireNonNull(dir.list()).length == 0) {
                 return false;
