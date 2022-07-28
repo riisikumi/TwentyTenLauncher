@@ -13,7 +13,7 @@ By default, AlphacraftLauncher will download **Beta 1.1_02**, as it was the last
   - You can sign in using any *valid* username, just like the original launcher before the 'excutePost()' implementation.
 - Support for skins and appropriate sounds for different Alpha/Beta versions of Minecraft.
 - Out-of-box compatibility with MCPatcher (HDTextureFix) and legacy mods (ModLoader).
-![Launcher](https://i.imgur.com/W8lS5HV.png)
+![Launcher](https://i.imgur.com/l62eqhr.png)
 
 ## TODO
 - >Signing in using a *valid* Microsoft account.
