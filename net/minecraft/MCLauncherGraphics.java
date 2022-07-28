@@ -14,9 +14,7 @@ public class MCLauncherGraphics implements Serializable {
 
     public void paint(Graphics g2) {
         if (minecraftLauncher.getApplet() == null) {
-            if (minecraftLauncher.getVolatileImage() == null
-                    || minecraftLauncher.getVolatileImage().getWidth() != minecraftLauncher.getWidth() / 2
-                    || minecraftLauncher.getVolatileImage().getHeight() != minecraftLauncher.getHeight() / 2) {
+            if (minecraftLauncher.getVolatileImage() == null || minecraftLauncher.getVolatileImage().getWidth() != minecraftLauncher.getWidth() / 2 || minecraftLauncher.getVolatileImage().getHeight() != minecraftLauncher.getHeight() / 2) {
                 minecraftLauncher.setVolatileImage(minecraftLauncher.createVolatileImage(minecraftLauncher.getWidth() / 2, minecraftLauncher.getHeight() / 2));
             }
 
