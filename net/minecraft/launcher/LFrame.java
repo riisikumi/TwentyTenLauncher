@@ -22,7 +22,6 @@ public class LFrame extends Frame {
     private final YAuthenticate yggdrasilAuthenticate = new YAuthenticate(this);
     public MCLauncher minecraftLauncher;
     public APanel authPanel;
-    public AInstances authInstances;
 
     public LFrame() {
         super("Minecraft Launcher " + LUpdater.currentVersion);
@@ -64,16 +63,32 @@ public class LFrame extends Frame {
         launcherFrame.setVisible(true);
     }
 
+    public void playOffline(String username) {
+        try {
+            if (username.matches("^\\w+$") && username.length() < 3 || username.length() > 16) {
+                username = "Player";
+            }
+            yggdrasilAuthenticate.getLauncherFrame().setMinecraftLauncher(new MCLauncher());
+            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().customParameters.put("username", username);
+            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().init();
+            yggdrasilAuthenticate.getLauncherFrame().removeAll();
+            yggdrasilAuthenticate.getLauncherFrame().add(yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher(), "Center");
+            yggdrasilAuthenticate.getLauncherFrame().validate();
+            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().start();
+            yggdrasilAuthenticate.getLauncherFrame().setAuthPanel(null);
+            yggdrasilAuthenticate.getLauncherFrame().setTitle("Minecraft");
+        } catch (Exception e) {
+            e.printStackTrace();
+            yggdrasilAuthenticate.getLauncherFrame().getAuthPanel().setError(e.toString());
+        }
+    }
+
     public APanel getAuthPanel() {
         return authPanel;
     }
 
     public MCLauncher getMinecraftLauncher() {
         return minecraftLauncher;
-    }
-
-    public void getPlayOffline(String username) {
-        this.authInstances.playOffline(username);
     }
 
     public void getYggdrasilAuthenticate(String username, String password) {

@@ -12,26 +12,6 @@ public class AInstances implements Serializable {
         this.yggdrasilAuthenticate = yggdrasilAuthenticate;
     }
 
-    public void playOffline(String username) {
-        try {
-            if (username.matches("^\\w+$") && username.length() < 3 || username.length() > 16) {
-                username = "Player";
-            }
-            yggdrasilAuthenticate.getLauncherFrame().setMinecraftLauncher(new MCLauncher());
-            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().customParameters.put("username", username);
-            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().init();
-            yggdrasilAuthenticate.getLauncherFrame().removeAll();
-            yggdrasilAuthenticate.getLauncherFrame().add(yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher(), "Center");
-            yggdrasilAuthenticate.getLauncherFrame().validate();
-            yggdrasilAuthenticate.getLauncherFrame().getMinecraftLauncher().start();
-            yggdrasilAuthenticate.getLauncherFrame().setAuthPanel(null);
-            yggdrasilAuthenticate.getLauncherFrame().setTitle("Minecraft");
-        } catch (Exception e) {
-            e.printStackTrace();
-            yggdrasilAuthenticate.getLauncherFrame().getAuthPanel().setError(e.toString());
-        }
-    }
-
     public void playOnline(String username, String sessionId) {
         try {
             if (username.matches("^\\w+$") && username.length() < 3 || username.length() > 16) {

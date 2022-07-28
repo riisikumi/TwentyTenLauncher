@@ -43,6 +43,7 @@ public class APanel extends Panel {
     public Button loginButton = new Button("Login");
     public Button retryButton = new Button("Try again");
     public Button offlineButton = new Button("Play offline");
+    public AInstances authInstances;
 
     public APanel(final LFrame launcherFrame) {
         this.setLayout(new GridBagLayout());
@@ -54,7 +55,7 @@ public class APanel extends Panel {
             this.add(this.buildLoginPanel());
             this.validate();
         });
-        this.offlineButton.addActionListener(e -> launcherFrame.getPlayOffline(this.usernameTextField.getText()));
+        this.offlineButton.addActionListener(e -> launcherFrame.playOffline(this.usernameTextField.getText()));
         this.loginButton.addActionListener(ae -> {
             try {
                 launcherFrame.getYggdrasilAuthenticate(this.usernameTextField.getText(), this.passwordTextField.getText());
