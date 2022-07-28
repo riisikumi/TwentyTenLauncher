@@ -28,11 +28,11 @@ public class LFrame extends Frame {
         this.setLayout(new BorderLayout());
         this.setBackground(Color.BLACK);
         this.setMinimumSize(new Dimension(320, 200));
-        this.setLocationRelativeTo(null);
         this.authPanel = new APanel(this);
         this.add(this.authPanel, "Center");
         this.authPanel.setPreferredSize(new Dimension(854, 480));
         this.pack();
+        this.setLocationRelativeTo(null);
         this.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
                 new Thread(() -> {
