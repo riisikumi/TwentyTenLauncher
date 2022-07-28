@@ -3,7 +3,7 @@ AlphacraftLauncher is a repurpose of the original Minecraft Launcher released on
 
 It enables you to play versions from **infdev (20100629)** all the way to **Beta 1.2_02** as they were the start and end of the original launcher.
 
-By default, AlphacraftLauncher will download **Beta 1.1_02**, as it was the last version of Minecraft to be released in 2010, and is what powers 'AlphaPlace', the popular legacy Minecraft server.
+By default, AlphacraftLauncher will download **Beta 1.1_02** as it was the last version of Minecraft to be released in 2010, and is what powers 'AlphaPlace', the popular legacy Minecraft server.
 
 > You need a minimum of Java 8 or greater to run this application.
 
