@@ -106,7 +106,7 @@ public class APanel extends Panel {
 
         Panel text = new Panel(new GridLayout(0, 1, 0, 2));
         panel.add(text, "West");
-        text.add(new Label("Email:", 2));
+        text.add(new Label("Username:", 2));
         text.add(new Label("Password:", 2));
         text.add(new Label(""));
 
