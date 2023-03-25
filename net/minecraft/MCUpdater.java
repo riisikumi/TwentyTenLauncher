@@ -35,7 +35,7 @@ public class MCUpdater implements Runnable {
     protected static boolean natives_loaded = false;
     public String fatalErrorDescription;
     protected String assetsUrl = "http://files.betacraft.uk/launcher/assets/";
-    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/e1c682219df45ebda589a557aadadd6ed093c86c/";
+    protected String clientUrl = "https://piston-data.mojang.com/v1/objects/43db9b498cb67058d2e12d394e6507722e71bb45/";
     protected String clientVersion = "client";
     protected String subtaskMessage = "";
 
